@@ -53,12 +53,12 @@ def spin_to_antiskyrmion_components(spins, padmode='periodic'):
 
 def antiskyrmion_components_to_defects(antiskyrmion_components, padmode='periodic'):
     angle = tf.atan2(antiskyrmion_components[..., 1], antiskyrmion_components[..., 0])
-    padded = pad_2d(angle, pad_i=1, pad_j=1, padmode=padmode)
-    defects = (padded[..., 1:-1, 2:] - padded[..., 1:-1, 1:-1] + np.pi) % (2. * np.pi)
-    defects += (padded[..., 2:, 2:] - padded[..., 1:-1, 2:] + np.pi) % (2. * np.pi)
-    defects += (padded[..., 2:, 1:-1] - padded[..., 2:, 2:] + np.pi) % (2. * np.pi)
-    defects += (padded[..., 1:-1, 1:-1] - padded[..., 2:, 1:-1]) % (2. * np.pi)
-    defects = (defects - 4. * np.pi) / (2. * np.pi)
+    padded = pad_2d(angle[..., tf.newaxis], pad_i=1, pad_j=1, padmode=padmode)[..., 0]
+    defects = (padded[..., 1:-1, 2:] - padded[..., 1:-1, 1:-1] + np.pi) % (2. * np.pi) - np.pi
+    defects += (padded[..., 2:, 2:] - padded[..., 1:-1, 2:] + np.pi) % (2. * np.pi) - np.pi
+    defects += (padded[..., 2:, 1:-1] - padded[..., 2:, 2:] + np.pi) % (2. * np.pi) - np.pi
+    defects += (padded[..., 1:-1, 1:-1] - padded[..., 2:, 1:-1]) % (2. * np.pi) - np.pi
+    defects = (defects - 4. * np.pi) / (2. * np.pi) - np.pi
     return defects
 
 def texture_field_to_defects(texture_field, padmode='periodic'):
