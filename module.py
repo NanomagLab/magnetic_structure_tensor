@@ -54,11 +54,19 @@ def spin_to_antiskyrmion_components(spins, padmode='periodic'):
 def antiskyrmion_components_to_defects(antiskyrmion_components, padmode='periodic'):
     angle = tf.atan2(antiskyrmion_components[..., 1], antiskyrmion_components[..., 0])
     padded = pad_2d(angle[..., tf.newaxis], pad_i=1, pad_j=1, padmode=padmode)[..., 0]
-    defects = (padded[..., 1:-1, 2:] - padded[..., 1:-1, 1:-1] + np.pi) % (2. * np.pi)
-    defects += (padded[..., 2:, 2:] - padded[..., 1:-1, 2:] + np.pi) % (2. * np.pi)
-    defects += (padded[..., 2:, 1:-1] - padded[..., 2:, 2:] + np.pi) % (2. * np.pi)
-    defects += (padded[..., 1:-1, 1:-1] - padded[..., 2:, 1:-1] + np.pi) % (2. * np.pi)
-    defects = (defects - 4. * np.pi) / (2. * np.pi)
+    try:
+        defects = (padded[..., 1:-1, 2:] - padded[..., 1:-1, 1:-1] + np.pi) % (2. * np.pi)
+        defects += (padded[..., 2:, 2:] - padded[..., 1:-1, 2:] + np.pi) % (2. * np.pi)
+        defects += (padded[..., 2:, 1:-1] - padded[..., 2:, 2:] + np.pi) % (2. * np.pi)
+        defects += (padded[..., 1:-1, 1:-1] - padded[..., 2:, 1:-1] + np.pi) % (2. * np.pi)
+        defects = (defects - 4. * np.pi) / (2. * np.pi)
+    except:
+        padded = np.array(padded)
+        defects = (padded[..., 1:-1, 2:] - padded[..., 1:-1, 1:-1] + np.pi) % (2. * np.pi)
+        defects += (padded[..., 2:, 2:] - padded[..., 1:-1, 2:] + np.pi) % (2. * np.pi)
+        defects += (padded[..., 2:, 1:-1] - padded[..., 2:, 2:] + np.pi) % (2. * np.pi)
+        defects += (padded[..., 1:-1, 1:-1] - padded[..., 2:, 1:-1] + np.pi) % (2. * np.pi)
+        defects = (defects - 4. * np.pi) / (2. * np.pi)
     return -defects
 
 def texture_field_to_defects(texture_field, padmode='periodic'):
@@ -233,3 +241,21 @@ def get_heff_JDM(spins, exJ: float = 1., DMB: float = 0., DMN: float = 0.):
     ], axis=-1)
     heff = heff_exJ * exJ + heff_DMB * DMB + heff_DMN * DMN
     return heff
+
+def greedy_step(spins, exJ=1.0, DMB=0., DMN=0.):
+    xx, yy = tf.meshgrid(tf.range(spins.shape[1]), tf.range(spins.shape[2]))
+    checker_board = tf.cast((xx + yy) % 2, spins.dtype)[tf.newaxis, ..., tf.newaxis]
+    new_spins = tf.math.l2_normalize(get_heff_JDM(spins, exJ=exJ, DMB=DMB, DMN=DMN), axis=-1)
+    new_spins = checker_board * new_spins + (1. - checker_board) * spins
+    spins = new_spins
+    new_spins = tf.math.l2_normalize(get_heff_JDM(spins, exJ=exJ, DMB=DMB, DMN=DMN), axis=-1)
+    new_spins = (1. - checker_board) * new_spins + checker_board * spins
+    return new_spins
+
+def make_examples():
+    initial_conditions = get_initial_conditions()
+    spins = initial_conditions
+    for i in range(10000):
+        spins = greedy_step(spins, DMB=0.1)
+        print(f"\r{i + 1} / 10000", end="")
+    return spins
