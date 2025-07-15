@@ -26,6 +26,11 @@ def effective_feild_method(S_init, interation=50, DMN=0.3):
   return S
 S = effective_field_method(S, DMN=DMN)
 
+# visualize spin
+rgb = spin_to_rgb(S)
+plt.imshow(rgb)
+plt.show()
+
 # from spin to order parameter t^~ = (chi_alpha, chi_beta)
 t_tilde = spin_to_antiskyrmion_components(S, padmode='zeros')
 
