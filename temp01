@@ -1,0 +1,39 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import module as m
+import tensorflow as tf
+import os
+from module import *
+
+DMN = 0.3
+
+image = ... # load some image. shape (H, W), 0~255 unit
+
+# convert grayscale image (0~255) into out-of-plane spin component (-1.0 ~ +1.0)
+Sz = np.float32(image) * 2. / 255. - 1. # (H, W), -1.~ +1. float32
+print("Sz shape", np.shape(Sz))
+print("Sz value", Sz))
+
+# make 3 components spin configuration from Sz
+S = np.stack([np.zeros_like(Sz), np.zeros_like(Sz), Sz], axis=-1) # (H, W, 3), -1.~ +1. float32
+
+# effective field method to make smooth spin configuration
+def effective_feild_method(S_init, interation=50, DMN=0.3):
+  S = S_init
+  for i in range(iteration):
+    heff = get_heff_JDM(S, DMN=DMN) # (H, W, 3), values = [[[heff_x, heff_y, heff_z], ...], ...]
+    S = heff / np.linalg.norm(heff, axis=2)
+  return S
+S = effective_field_method(S, DMN=DMN)
+
+# from spin to order parameter t^~ = (chi_alpha, chi_beta)
+t_tilde = spin_to_antiskyrmion_components(S, padmode='zeros')
+
+# get angle of order parameter, theta_t
+theta_t = np.atan2(t_tilde[..., 1], tilde[..., 0])
+
+# get orientation angle, theta_O = theta_t / 2. + 1 / 2.
+theta_O = theta_t / 2. + 1 / 2.
+
+# visualize
+...
