@@ -18,7 +18,7 @@ print("Sz value", Sz))
 S = np.stack([np.zeros_like(Sz), np.zeros_like(Sz), Sz], axis=-1) # (H, W, 3), -1.~ +1. float32
 
 # effective field method to make smooth spin configuration
-def effective_feild_method(S_init, interation=20, DMN=0.3):
+def effective_feild_method(S_init, iteration=20, DMN=0.3):
   S = S_init
   for i in range(iteration):
     heff = get_heff_JDM(S, DMN=DMN) # (H, W, 3), values = [[[heff_x, heff_y, heff_z], ...], ...]
