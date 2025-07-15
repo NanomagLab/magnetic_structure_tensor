@@ -40,5 +40,5 @@ theta_t = np.atan2(t_tilde[..., 1], tilde[..., 0])
 # get orientation angle, theta_O = theta_t / 2. + 1 / 2.
 theta_O = theta_t / 2. + 1 / 2.
 
-# visualize
+# visualize orientation field
 ...
